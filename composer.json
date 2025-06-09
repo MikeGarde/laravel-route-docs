@@ -53,9 +53,18 @@
   ],
   "minimum-stability": "stable",
   "prefer-stable": true,
+  "config": {
+    "sort-packages": true
+  },
   "scripts": {
     "test": [
       "phpunit"
+    ],
+    "test:coverage": [
+      "phpunit --coverage-clover=tmp/clover.xml --coverage-filter=src"
+    ],
+    "test:report": [
+      "phpunit --coverage-html=tmp/coverage --coverage-filter=src"
     ],
     "post-autoload-dump": [
       "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump"

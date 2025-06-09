@@ -20,10 +20,19 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: zip
+          extensions: zip, xdebug
+          coverage: xdebug
 
       - name: Install Dependencies
         run: composer install
 
       - name: Run tests
-        run: composer test
+        run: composer test:coverage
+
+      - name: Upload coverage reports to Codecov
+        if: ${{ matrix.php == '8.4' }}
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./tmp/clover.xml
+
