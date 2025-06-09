@@ -67,7 +67,7 @@ class RouteDocEntry
     {
         return [
             'error'  => $this->error ? 'X' : '',
-            'method' => $this->httpMethod,
+            'method' => $this->method,
             'path'   => $this->path,
             'name'   => $this->name ?? '',
             'class'  => $this->class,
