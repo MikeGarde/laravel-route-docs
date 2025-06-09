@@ -1,6 +1,7 @@
 # Laravel Route Docs
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/mikegarde/laravel-route-docs.svg?style=flat-square)](https://packagist.org/packages/mikegarde/laravel-route-docs)
+[![codecov](https://codecov.io/gh/mikegarde/laravel-route-docs/branch/main/graph/badge.svg)](https://codecov.io/gh/mikegarde/laravel-route-docs)
 [![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/mikegarde/laravel-route-docs/run-tests.yml?branch=main&label=tests)](https://github.com/mikegarde/laravel-route-docs/actions)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 

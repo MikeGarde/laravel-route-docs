@@ -12,4 +12,7 @@ ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/do
 RUN chmod +x /usr/local/bin/install-php-extensions && sync
 RUN install-php-extensions @composer xdebug
 
+COPY devops/xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
+RUN rm /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+
 WORKDIR /app
