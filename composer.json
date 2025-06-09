@@ -1,0 +1,55 @@
+{
+  "name": "mikegarde/laravel-route-docs",
+  "description": "A Laravel package that uses PHP attributes to document routes, generate readable route listings, and export OpenAPI or Postman definitions.",
+  "type": "library",
+  "license": "GPL-3.0-only",
+  "authors": [
+    {
+      "name": "Mike Garde",
+      "email": "you@example.com"
+    }
+  ],
+  "require": {
+    "php": "^8.1",
+    "illuminate/support": "^9.0|^10.0|^11.0|^12.0",
+    "illuminate/console": "^9.0|^10.0|^11.0|^12.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": ">=10.5",
+    "orchestra/testbench": ">=8.18"
+  },
+  "autoload": {
+    "psr-4": {
+      "RouteDocs\\": "src/"
+    },
+    "files": [
+      "src/helpers.php"
+    ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Examples\\Http\\Controllers\\": "examples/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "RouteDocs\\RouteDocsServiceProvider"
+      ]
+    }
+  },
+  "keywords": [
+    "laravel",
+    "routes",
+    "route docs",
+    "api docs",
+    "openapi",
+    "postman",
+    "attribute",
+    "annotation",
+    "cli",
+    "developer tools"
+  ],
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}
