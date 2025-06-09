@@ -16,6 +16,7 @@ class RouteDocCollectionTest extends TestCase
         $a = $this->makeEntry('A', 'foo', 'GET', '/a', 'a');
         $b = $this->makeEntry('B', 'bar', 'POST', '/b', 'b');
         $c = $this->makeEntry('C', 'baz', 'PUT', '/c', 'c');
+
         $collection = new RouteDocCollection([$b, $c, $a]);
 
         $sorted = $collection->sortByKey('class');
@@ -26,6 +27,7 @@ class RouteDocCollectionTest extends TestCase
     {
         $a = $this->makeEntry('A', 'foo', 'GET', '/a', 'a', false);
         $b = $this->makeEntry('B', 'bar', 'POST', '/b', 'b', true);
+
         $collection = new RouteDocCollection([$a, $b]);
 
         $this->assertTrue($collection->hasErrors());
@@ -36,6 +38,7 @@ class RouteDocCollectionTest extends TestCase
     {
         $a = $this->makeEntry('A', 'foo', 'GET', '/a', 'a', false);
         $b = $this->makeEntry('B', 'bar', 'POST', '/b', 'b', true);
+
         $collection = new RouteDocCollection([$a, $b]);
 
         $errors = $collection->onlyErrors();
@@ -47,6 +50,7 @@ class RouteDocCollectionTest extends TestCase
     {
         $a = $this->makeEntry('A', 'foo', 'GET', '/a', 'a', false);
         $b = $this->makeEntry('B', 'bar', 'POST', '/b', 'b', true);
+
         $collection = new RouteDocCollection([$a, $b]);
 
         // With error column and color

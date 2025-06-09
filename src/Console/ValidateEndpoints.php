@@ -10,11 +10,22 @@ class ValidateEndpoints extends Command
     protected $signature   = 'route:docs:validate {--path= : Path to controller directory}';
     protected $description = 'Validate route attribute usage across controllers.';
 
+    public function __construct(RouteDocInspector $inspector)
+    {
+        // This allows both CLI flexibility and test mocking
+        parent::__construct();
+        $this->inspector = $inspector;
+    }
+
     public function handle(): int
     {
-        $inspector = new RouteDocInspector($this->option('path') ?? null);
-        $routes    = $inspector->getDocumentedRoutes();
-        $errors    = $routes->onlyErrors();
+        // If --path is provided, re-instantiate inspector with path
+        if ($path = $this->option('path')) {
+            $this->inspector = new RouteDocInspector($path);
+        }
+
+        $routes = $this->inspector->getDocumentedRoutes();
+        $errors = $routes->onlyErrors();
 
         if ($errors->isEmpty()) {
             $this->info('✔ All documented routes are correctly registered.');
