@@ -31,59 +31,62 @@ class RouteDocInspector
         return $namespace ?: $default;
     }
 
+    protected function getClassFromFile(string $file): ?string
+    {
+        $src = file_get_contents($file);
+        if (preg_match('/namespace\s+([^;]+);/', $src, $nsMatch) &&
+            preg_match('/class\s+([^\s{]+)/', $src, $classMatch)) {
+            return trim($nsMatch[1]) . '\\' . trim($classMatch[1]);
+        }
+
+        return null;
+    }
+
     public function getDocumentedRoutes(): RouteDocCollection
     {
-        $routes = collect();
-        $seen   = [];
+        $routes    = collect();
+        $namespace = $this->controllerNamespace();
 
         foreach ($this->getPhpFiles($this->controllerPath) as $file) {
-            require_once $file;
+            $class = $this->getClassFromFile($file);
+            if (!$class || !class_exists($class)) {
+                continue;
+            }
+            $ref = new ReflectionClass($class);
 
-            foreach (get_declared_classes() as $class) {
-                $namespace = $this->controllerNamespace();
-                if (!Str::startsWith(Str::lower($class), Str::lower($namespace . '\\'))) {
-                    continue;
-                }
-                if (in_array($class, $seen, true)) {
-                    continue;
-                }
-                $seen[] = $class;
+            foreach ($ref->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+                foreach ($method->getAttributes() as $attr) {
+                    $instance = $attr->newInstance();
 
-                $ref = new ReflectionClass($class);
-
-                foreach ($ref->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
-                    foreach ($method->getAttributes() as $attr) {
-                        $instance = $attr->newInstance();
-
-                        if (!is_subclass_of($instance, HttpMethod::class)) {
-                            continue;
-                        }
-
-                        $shortClass = Str::startsWith(Str::lower($class), Str::lower($namespace . '\\'))
-                            ? substr($class, strlen($namespace) + 1)
-                            : $class;
-
-                        $error = !$this->routeExists(
-                            name  : $instance->name,
-                            path  : $instance->path,
-                            method: $instance::method(),
-                            class : $class,
-                            action: $method->getName()
-                        );
-
-                        $entry = new RouteDocEntry(
-                            class : $shortClass,
-                            action: $method->getName(),
-                            method: $instance::method(),
-                            path  : $instance->path,
-                            name  : $instance->name,
-                            error : $error
-                        );
-
-                        $routes->push($entry);
+                    if (!is_subclass_of($instance, HttpMethod::class)) {
+                        continue;
                     }
+
+                    $shortClass = Str::startsWith(Str::lower($class), Str::lower($namespace . '\\'))
+                        ? substr($class, strlen($namespace) + 1)
+                        : $class;
+
+                    $error = !$this->routeExists(
+                        name  : $instance->name,
+                        path  : $instance->path,
+                        method: $instance::method(),
+                        class : $class,
+                        action: $method->getName()
+                    );
+
+                    $entry = new RouteDocEntry(
+                        class : $shortClass,
+                        action: $method->getName(),
+                        method: $instance::method(),
+                        path  : $instance->path,
+                        name  : $instance->name,
+                        error : $error
+                    );
+
+                    $routes->push($entry);
                 }
             }
+
         }
 
         return new RouteDocCollection($routes);
@@ -92,21 +95,21 @@ class RouteDocInspector
     protected function routeExists(?string $name, string $path, string $method, string $class,
                                    string  $action): bool
     {
-        $action = strtoupper($action);
+        $method = strtoupper($method);
         $path   = $path === '/' ? '/' : ltrim($path, '/');
 
         foreach (Route::getRoutes() as $route) {
             if (
                 $route->uri() === $path &&
-                in_array(strtoupper($action), $route->methods(), true)
+                in_array(strtoupper($method), $route->methods(), true)
             ) {
-                $action = $route->getAction('controller');
+                $laravelAction = $route->getAction('controller');
 
-                if (!str_contains($action, '@')) {
+                if (!str_contains($laravelAction, '@')) {
                     continue;
                 }
 
-                [$actualController, $actualMethod] = explode('@', $action);
+                [$actualController, $actualMethod] = explode('@', $laravelAction);
 
                 if (
                     ltrim($actualController, '\\') === ltrim($class, '\\') &&

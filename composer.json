@@ -28,7 +28,8 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Examples\\Http\\Controllers\\": "examples/"
+      "Examples\\Http\\Controllers\\": "examples/",
+      "Tests\\": "tests/"
     }
   },
   "extra": {
@@ -51,5 +52,13 @@
     "developer tools"
   ],
   "minimum-stability": "stable",
-  "prefer-stable": true
+  "prefer-stable": true,
+  "scripts": {
+    "test": [
+      "phpunit"
+    ],
+    "post-autoload-dump": [
+      "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump"
+    ]
+  }
 }
