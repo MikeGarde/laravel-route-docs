@@ -107,13 +107,6 @@ if [[ ! "$CONFIRM" =~ ^[Yy]$ ]]; then
   exit 1
 fi
 
-# Do it
-HASH=$(git rev-parse --short HEAD)
-DATE=$(date +"%Y%m.%d.%H%M")
-BRANCH_FN=$(echo $BRANCH | tr -d '/')
-ZIP_FILE="devops/${NEW_VERSION}-$BRANCH_FN-$DATE-$HASH.zip"
-sh devops/build.sh "$ZIP_FILE"
-
-gh release create "$NEW_VERSION" --generate-notes --target $BRANCH $ZIP_FILE
+gh release create "$NEW_VERSION" --generate-notes --target $BRANCH
 
 exit 0
