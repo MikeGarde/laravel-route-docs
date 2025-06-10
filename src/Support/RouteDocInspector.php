@@ -4,6 +4,7 @@ namespace RouteDocs\Support;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use ReflectionClass;
 use ReflectionMethod;
@@ -73,6 +74,23 @@ class RouteDocInspector
                         class : $class,
                         action: $method->getName()
                     );
+
+                    $rules     = [
+                        'path'   => 'required|string|regex:/^\//',
+                        'method' => 'required|string|in:GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS',
+                        'name'   => 'nullable|string|regex:/^[a-zA-Z0-9_.-]+$/',
+                    ];
+                    $validator = Validator::make(
+                        [
+                            'path'   => $instance->path,
+                            'method' => $instance::method(),
+                            'name'   => $instance->name,
+                        ],
+                        $rules
+                    );
+                    if ($validator->fails()) {
+                        $error = true;
+                    }
 
                     $entry = new RouteDocEntry(
                         class : $shortClass,
