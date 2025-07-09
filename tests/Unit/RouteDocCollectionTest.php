@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests\Unit;
+
 use PHPUnit\Framework\TestCase;
 use RouteDocs\Support\RouteDocEntry;
 use RouteDocs\Support\RouteDocCollection;

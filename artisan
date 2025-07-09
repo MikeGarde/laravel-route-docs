@@ -1,0 +1,36 @@
+#!/usr/bin/env php
+<?php
+
+// THIS IS NOT A REAL ARTISAN FILE
+// This file is used for development and testing purposes only.
+
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Support\Facades\Route;
+use Orchestra\Testbench\Foundation\Application;
+
+require __DIR__ . '/vendor/autoload.php';
+require __DIR__ . '/src/helpers.php';
+
+// Create the App using the Testbench factory
+$appFactory = Application::make(__DIR__);
+
+// Don't actually configure the app here, testbench will override it
+// $appFactory->configure([]);
+
+// Create the Laravel app instance
+$app = $appFactory->create();
+
+// We need to register the service provider manually
+$app->register(RouteDocs\RouteDocsServiceProvider::class);
+
+Route::middleware('web')
+     ->group('examples/routes.php');
+
+// Do it
+$app->make(Kernel::class)->handle(
+    $input = new Symfony\Component\Console\Input\ArgvInput(),
+    new Symfony\Component\Console\Output\ConsoleOutput()
+);

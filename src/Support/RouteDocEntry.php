@@ -4,6 +4,7 @@ namespace RouteDocs\Support;
 
 class RouteDocEntry
 {
+    protected array $errorContext = [];
     protected bool $useColor = false;
 
     public function __construct(
@@ -13,12 +14,34 @@ class RouteDocEntry
         public string  $path,
         public ?string $name = null,
         public bool    $error = false,
+        public array   $params = [
+            'path'  => [],
+            'query' => [],
+            'form'  => [],
+        ],
+        public array   $middlewares = [],
     ) {
     }
 
     public function setOutputColor(bool $useColor = true): void
     {
         $this->useColor = $useColor;
+    }
+
+    public function setError(array $context = []): void
+    {
+        $this->error = true;
+        $this->errorContext = $context;
+    }
+
+    public function hasError(): bool
+    {
+        return $this->error;
+    }
+
+    public function getErrors(): array
+    {
+        return $this->errorContext;
     }
 
     protected function colorHttpMethod(string $method): string

@@ -45,7 +45,7 @@ class CommandsTest extends TestCase
         $output = Artisan::output();
 
         $this->assertEquals(0, $result);
-        $this->assertStringNotContainsString('error', $output);
+        $this->assertStringContainsString('error', $output);
         $this->assertStringContainsString('method', $output);
         $this->assertStringContainsString('path', $output);
         $this->assertStringContainsString('name', $output);
@@ -79,5 +79,45 @@ class CommandsTest extends TestCase
 
         $this->assertEquals(0, $result);
         $this->assertStringContainsString('All documented routes are correctly registered', $output);
+    }
+
+    public function testListOutputJsonFormat()
+    {
+        $class  = 'A';
+        $action = 'foo';
+        $method = 'GET';
+        $path   = '/a';
+        $name   = 'a';
+        $error  = false;
+
+        $entry      = new RouteDocEntry($class, $action, $method, $path, $name, $error);
+        $collection = new RouteDocCollection([$entry]);
+        $this->mockInspectorWithRoutes($collection);
+
+        $result = Artisan::call('route:docs', ['--json' => true]);
+        $output = Artisan::output();
+
+        $this->assertEquals(0, $result);
+        $this->assertJson($output);
+
+        $data = json_decode($output, true);
+        $this->assertIsArray($data);
+        $this->assertCount(1, $data);
+
+        $entry = $data[0];
+
+        $this->assertArrayHasKey('class', $entry);
+        $this->assertArrayHasKey('action', $entry);
+        $this->assertArrayHasKey('method', $entry);
+        $this->assertArrayHasKey('path', $entry);
+        $this->assertArrayHasKey('name', $entry);
+        $this->assertArrayHasKey('error', $entry);
+
+        $this->assertEquals($class, $entry['class']);
+        $this->assertEquals($action, $entry['action']);
+        $this->assertEquals($method, $entry['method']);
+        $this->assertEquals($path, $entry['path']);
+        $this->assertEquals($name, $entry['name']);
+        $this->assertEquals($error, $entry['error']);
     }
 }

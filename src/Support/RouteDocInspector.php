@@ -8,7 +8,10 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use ReflectionClass;
 use ReflectionMethod;
+use RouteDocs\Attributes\formParam;
 use RouteDocs\Attributes\HttpMethod;
+use RouteDocs\Attributes\param;
+use RouteDocs\Attributes\queryParam;
 
 class RouteDocInspector
 {
@@ -19,28 +22,6 @@ class RouteDocInspector
     {
         $this->controllerPath   = $controllerPath ?? base_path('app/Http/Controllers');
         $this->requireNameMatch = $requireNameMatch;
-    }
-
-    protected function controllerNamespace(): string
-    {
-        $basePath     = base_path() . '/';
-        $relativePath = Str::after($this->controllerPath, $basePath);
-        $trimmedPath  = trim($relativePath, '/');
-        $namespace    = str_replace('/', '\\', $trimmedPath);
-        $default      = 'App\\Http\\Controllers';
-
-        return $namespace ?: $default;
-    }
-
-    protected function getClassFromFile(string $file): ?string
-    {
-        $src = file_get_contents($file);
-        if (preg_match('/namespace\s+([^;]+);/', $src, $nsMatch) &&
-            preg_match('/class\s+([^\s{]+)/', $src, $classMatch)) {
-            return trim($nsMatch[1]) . '\\' . trim($classMatch[1]);
-        }
-
-        return null;
     }
 
     public function getDocumentedRoutes(): RouteDocCollection
@@ -67,7 +48,7 @@ class RouteDocInspector
                         ? substr($class, strlen($namespace) + 1)
                         : $class;
 
-                    $error = !$this->routeExists(
+                    $validRoute = $this->routeExists(
                         name  : $instance->name,
                         path  : $instance->path,
                         method: $instance::method(),
@@ -76,21 +57,24 @@ class RouteDocInspector
                     );
 
                     $rules     = [
-                        'path'   => 'required|string|regex:/^\//',
-                        'method' => 'required|string|in:GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS',
-                        'name'   => 'nullable|string|regex:/^[a-zA-Z0-9_.-]+$/',
+                        'path'       => 'required|string|regex:/^\//',
+                        'method'     => 'required|string|in:GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS',
+                        'name'       => 'nullable|string|regex:/^[a-zA-Z0-9_.-]+$/',
+                        'validRoute' => 'accepted', // aka true
+                    ];
+                    $messages  = [
+                        'validRoute.accepted' => 'The route is invalid.',
                     ];
                     $validator = Validator::make(
                         [
-                            'path'   => $instance->path,
-                            'method' => $instance::method(),
-                            'name'   => $instance->name,
+                            'path'       => $instance->path,
+                            'method'     => $instance::method(),
+                            'name'       => $instance->name,
+                            'validRoute' => $validRoute,
                         ],
-                        $rules
+                        $rules,
+                        $messages
                     );
-                    if ($validator->fails()) {
-                        $error = true;
-                    }
 
                     $entry = new RouteDocEntry(
                         class : $shortClass,
@@ -98,8 +82,13 @@ class RouteDocInspector
                         method: $instance::method(),
                         path  : $instance->path,
                         name  : $instance->name,
-                        error : $error
                     );
+
+                    if ($validator->fails()) {
+                        $entry->setError($validator->errors()->all());
+                    }
+
+                    $entry->params = $this->gatherParams($method);
 
                     $routes->push($entry);
                 }
@@ -145,7 +134,56 @@ class RouteDocInspector
         return false;
     }
 
-    protected function getPhpFiles(string $dir): array
+    protected static function gatherParams(ReflectionMethod $method): array
+    {
+        $paramGroups = [
+            'path'  => [],
+            'query' => [],
+            'form'  => [],
+        ];
+
+        foreach ($method->getAttributes() as $attr) {
+            $instance = $attr->newInstance();
+
+            if (!$instance instanceof Param) {
+                continue;
+            }
+
+            $paramGroups[ $instance->type ][] = [
+                'key'         => $instance->key,
+                'cast'        => $instance->cast,
+                'required'    => $instance->required,
+                'description' => $instance->description,
+                'example'     => $instance->example,
+            ];
+        }
+
+        return $paramGroups;
+    }
+
+    private function controllerNamespace(): string
+    {
+        $basePath     = base_path() . '/';
+        $relativePath = Str::after($this->controllerPath, $basePath);
+        $trimmedPath  = trim($relativePath, '/');
+        $namespace    = str_replace('/', '\\', $trimmedPath);
+        $default      = 'App\\Http\\Controllers';
+
+        return $namespace ?: $default;
+    }
+
+    private function getClassFromFile(string $file): ?string
+    {
+        $src = file_get_contents($file);
+        if (preg_match('/namespace\s+([^;]+);/', $src, $nsMatch) &&
+            preg_match('/class\s+([^\s{]+)/', $src, $classMatch)) {
+            return trim($nsMatch[1]) . '\\' . trim($classMatch[1]);
+        }
+
+        return null;
+    }
+
+    private function getPhpFiles(string $dir): array
     {
         return File::allFiles($dir);
     }
