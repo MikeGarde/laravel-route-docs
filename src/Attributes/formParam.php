@@ -5,7 +5,7 @@ namespace RouteDocs\Attributes;
 use Attribute;
 
 #[Attribute(Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
-class formParam extends Param
+class formParam extends param
 {
     public function __construct(
         string        $key,
