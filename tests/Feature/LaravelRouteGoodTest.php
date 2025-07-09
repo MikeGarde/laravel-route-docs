@@ -43,16 +43,16 @@ class LaravelRouteGoodTest extends TestCase
         $this->assertIsArray($array);
 
         // We don't want this and will give us a passing test next, but let's help the user out
-        if ($errors) {
-            foreach ($routes as $route) {
-                if ($route->hasError()) {
-                    $msg     = 'Error found in route: %s %s - %s';
-                    $method  = $route->method;
-                    $path    = $route->path;
-                    $context = implode(', ', $route->getErrors());
-                    $this->fail(sprintf($msg, $method, $path, $context));
-                }
+        foreach ($routes as $route) {
+            if ($route->hasError()) {
+                $msg     = 'Error found in route: %s %s - %s';
+                $method  = $route->method;
+                $path    = $route->path;
+                $context = implode(', ', $route->getErrors());
+                $this->fail(sprintf($msg, $method, $path, $context));
             }
+            $this->assertFalse($route->hasError());
+            $this->assertEmpty($route->getErrors());
         }
 
         $this->assertFalse($errors, 'Expected no errors but found some.');
